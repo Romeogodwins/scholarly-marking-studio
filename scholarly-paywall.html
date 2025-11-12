@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scholarly Marking — $50/month Access</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--bg:#0f172a;--panel:#0b1220;--ink:#e6edf6;--muted:#9fb0c3;--line:#1f2937;--accent:#22c55e;--accent2:#38bdf8;--warn:#f59e0b;--danger:#ef4444}
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0f172a,#0b1220);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:860px;margin:0 auto;padding:24px}
+  .card{background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+  h1{font-size:22px;margin:0 0 8px}
+  h2{font-size:16px;margin:10px 0}
+  p{color:var(--muted);margin:6px 0}
+  label{display:block;margin:8px 0 4px;color:#cbd5e1;font-weight:600}
+  input[type=text],input[type=url]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0a101e;color:var(--ink)}
+  .row{display:grid;gap:12px}
+  .row-2{grid-template-columns:1fr 1fr}
+  .btn{display:inline-flex;gap:8px;align-items:center;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;text-decoration:none}
+  .btn.pay{background:var(--accent2);color:#06202b}
+  .btn.go{background:var(--accent);color:#052012}
+  .btn.ghost{background:#132036;color:var(--ink);border:1px solid var(--line)}
+  .muted{color:var(--muted);font-size:13px}
+  .check{display:flex;gap:10px;align-items:flex-start;margin-top:8px}
+  .pill{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}
+  .badge{display:inline-block;padding:4px 10px;border-radius:10px;font-weight:800;font-size:12px;margin-left:8px}
+  .ok{background:#093f2b;color:#6ee7b7;border:1px solid #14532d}
+  .exp{background:#3f0d0d;color:#fca5a5;border:1px solid #7f1d1d}
+  .sep{height:1px;background:var(--line);margin:12px 0}
+  .footer{color:#7e8ca1;font-size:12px;margin-top:10px}
+  .hint{font-size:12px;color:#93a4bb}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Scholarly Marking Studio — Subscription Access</h1>
+    <p><strong>Price:</strong> <span style="font-weight:900;color:#93f5ff">$50/month</span> (manual renewal via Yoco)</p>
+    <p class="muted">Pay each month using the button below, then continue to the Scholarly assistant.</p>
+    <div class="pill">Note: This page does not auto-verify with Yoco. It records a local 30-day access window after you confirm payment.</div>
+  </div>
+
+  <div class="card">
+    <h2>1) Pay $50 this month</h2>
+    <p>Use the secure Yoco checkout (one-time payment). Renew manually each month to keep access active.</p>
+    <div class="row">
+      <a class="btn pay" id="btnPay" href="https://pay.yoco.com/godmillcity" target="_blank" rel="noopener">💳 Pay $50 with Yoco</a>
+      <button class="btn ghost" id="btnCopyLink" type="button">🔗 Copy payment link</button>
+    </div>
+    <div class="row row-2" style="margin-top:12px">
+      <div>
+        <label for="ref">Your payment reference (optional)</label>
+        <input id="ref" type="text" placeholder="e.g. Surname-Month (Mokoena-2025-11)">
+        <div class="hint">Helps reconcile payments if we follow up.</div>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <div class="check">
+          <input id="paid" type="checkbox" style="margin-top:3px">
+          <span>I have paid $50 on Yoco for this month.</span>
+        </div>
+        <div id="accessStatus" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2) Continue to Scholarly</h2>
+    <label for="gpt">Scholarly GPT link</label>
+    <input id="gpt" type="url" placeholder="Paste your Scholarly GPT public link (saved for next time)">
+    <div class="hint">Example: https://chat.openai.com/g/gpt-xxxxxxxxxxxxxxxx</div>
+    <div class="sep"></div>
+    <button class="btn go" id="btnGo" type="button" disabled>➡️ Continue to Scholarly</button>
+    <p id="status" class="muted">Waiting for payment confirmation…</p>
+  </div>
+
+  <div class="card">
+    <h2>Policy & Help</h2>
+    <p><strong>Monthly access:</strong> $50 per month, renewed manually via the Yoco button above.</p>
+    <p><strong>Currency:</strong> Charged in USD ($). If your Yoco page is set to ZAR, pay the equivalent amount posted there.</p>
+    <p><strong>Support:</strong> Keep your payment reference and contact <a href="mailto:godmillcity547@gmail.com">godmillcity547@gmail.com</a> • 079 058 2637</p>
+    <div class="footer">© Godmill City Guesthouse — Scholarly Marking Studio</div>
+  </div>
+</div>
+
+<script>
+  const yocoLink = "https://pay.yoco.com/godmillcity";
+  const gptInput = document.getElementById('gpt');
+  const paidChk = document.getElementById('paid');
+  const goBtn = document.getElementById('btnGo');
+  const status = document.getElementById('status');
+  const refInput = document.getElementById('ref');
+  const accessStatus = document.getElementById('accessStatus');
+
+  const KEY_LINK = 'scholarly_gpt_link';
+  const KEY_REF = 'scholarly_last_ref';
+  const KEY_TS = 'scholarly_paid_ts'; // ms since epoch
+  const ACCESS_DAYS = 30;
+
+  // Load saved
+  gptInput.value = localStorage.getItem(KEY_LINK) || "";
+  refInput.value = localStorage.getItem(KEY_REF) || "";
+
+  // Access window UI
+  function daysLeft(ts){
+    const msDay = 24*60*60*1000;
+    const diff = (ts + ACCESS_DAYS*msDay) - Date.now();
+    return Math.floor(diff / msDay);
+  }
+  function renderAccess(){
+    const ts = +localStorage.getItem(KEY_TS) || 0;
+    if(!ts){
+      accessStatus.innerHTML = `<span class="badge exp">No active month</span>`;
+      return false;
+    }
+    const left = daysLeft(ts);
+    if(left >= 0){
+      accessStatus.innerHTML = `<span class="badge ok">Active — ${left} day(s) left</span>`;
+      return true;
+    }else{
+      accessStatus.innerHTML = `<span class="badge exp">Expired — please pay $50 and confirm</span>`;
+      return false;
+    }
+  }
+
+  function updateReady(){
+    const hasLink = !!gptInput.value.trim();
+    const ts = +localStorage.getItem(KEY_TS) || 0;
+    const active = ts && daysLeft(ts) >= 0;
+    const confirmed = paidChk.checked;
+
+    // Allow Continue if: (active) OR (user just paid and confirmed), and link present
+    const allow = hasLink && (active || confirmed);
+    goBtn.disabled = !allow;
+
+    let msg = "";
+    if(!hasLink){
+      msg = "Paste the Scholarly GPT link to continue.";
+    }else if(active){
+      msg = "Access is active — continue anytime.";
+    }else if(confirmed){
+      msg = "Thanks — you can continue now. Your 30-day access will start.";
+    }else{
+      msg = "Waiting for payment confirmation…";
+    }
+    status.textContent = msg;
+  }
+
+  // Init
+  renderAccess();
+  updateReady();
+
+  paidChk.addEventListener('change', updateReady);
+  gptInput.addEventListener('input', updateReady);
+
+  // Continue
+  document.getElementById('btnGo').addEventListener('click', ()=>{
+    const url = gptInput.value.trim();
+    if(!/^https?:\/\//i.test(url)){ alert("Please paste a valid Scholarly GPT link (starts with http or https)."); return; }
+    localStorage.setItem(KEY_LINK, url);
+    localStorage.setItem(KEY_REF, refInput.value.trim());
+
+    // If not already active, start a new 30-day window on first continue after confirming
+    const ts = +localStorage.getItem(KEY_TS) || 0;
+    const active = ts && daysLeft(ts) >= 0;
+    if(!active){
+      if(!paidChk.checked){
+        alert("Please confirm payment ($50) before continuing.");
+        return;
+      }
+      localStorage.setItem(KEY_TS, Date.now().toString());
+    }
+
+    // Append ref tag to GPT link (optional)
+    const ref = encodeURIComponent(refInput.value.trim() || "paid");
+    const target = url.includes("?") ? `${url}&ref=${ref}` : `${url}?ref=${ref}`;
+    window.location.href = target;
+  });
+
+  // Copy Yoco link
+  document.getElementById('btnCopyLink').addEventListener('click', async ()=>{
+    try{ await navigator.clipboard.writeText(yocoLink); alert("Payment link copied."); }
+    catch(e){ alert("Copy failed. Link: "+yocoLink); }
+  });
+</script>
+</body>
+</html>
